@@ -1,9 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-
 import {Button} from "react-bootstrap";
-
 import {database} from './Config/config.js';
+import {deleteCupById, addCup, listenCupsByUser, getAllCupsForUser} from './Servcies/CupsServices.js';
 
 export class Tracker extends React.Component {
     state = {
@@ -12,86 +11,86 @@ export class Tracker extends React.Component {
     }
 
     componentDidMount () {
-        // Вынимаем из БД из коллекции 'cups' документ с id 'MnQFOwf5V0J70cevDQKS'.
-        
-        // const cup = database.collection('cups').doc('MnQFOwf5V0J70cevDQKS');
-        // cup.get().then(
-        //     (resp) => {
-        //         console.log(resp.data());
-        //     }
-        // )
+        /**
+         * Грузим все чашки для текущего пользователя.
+         */
+        getAllCupsForUser("Volkov")
+            .then(
+                (querySnapshot) => {
+                    const cups = [];
+                    querySnapshot.forEach((doc) => {
+                        cups.push(doc);
+                    });
+                    this.setState({
+                        isLoading: false,
+                        cups
+                    })
+                }
+            )
+            .catch(
+                (error) => {
+                    console.log("Error getting documents: ", error);
+                }
+            );            
 
-        // Получить все документы
-
-        // database.collection("cups").get().then(function(querySnapshot) {
-        //     querySnapshot.forEach(function(doc) {
-        //         // doc.data() is never undefined for query doc snapshots
-        //         console.log(doc.id, " => ", doc.data());
-        //     });
-        // });
-
-        // Получить все документы с условием
-
-        database.collection("cups").where("user", "==", "Volkov")
-            .get()
-            .then((querySnapshot) => {
-                const cups = [];
-                querySnapshot.forEach((doc) => {
-                    // doc.data() is never undefined for query doc snapshots
-                    console.log(doc.id, " => ", doc.data());
-                    cups.push(doc);
-                });
-                this.setState({
-                    isLoading: false,
-                    cups
-                })
-            })
-            .catch(function(error) {
-                console.log("Error getting documents: ", error);
+        /**
+         * Подписываемся на обновления коллекции cups для текущего пользователя.
+         */
+        listenCupsByUser("Volkov", (querySnapshot) => {
+            const cups = [];
+            querySnapshot.forEach(function(doc) {
+                cups.push(doc);
             });
-
-        // Настравиаем realtime обновления https://firebase.google.com/docs/firestore/query-data/listen
-
-        database.collection("cups").where("user", "==", "Volkov")
-            .onSnapshot((querySnapshot) => {
-                const cups = [];
-                querySnapshot.forEach(function(doc) {
-                    cups.push(doc);
-                });
-                this.setState({
-                    cups
-                })
-            });
+            this.setState({cups})
+        });
     }
 
+    /**
+     * Обработчик нажатия на кнопку "Удалить".
+     */
     handleRemoveButtonClick = (event) => {
         const docId = event.target.dataset.id;
-
-        // Удаление записи https://firebase.google.com/docs/firestore/manage-data/delete-data 
-
-        database.collection("cups").doc(docId).delete().then(function() {
-            console.log("Document successfully deleted!");
-        }).catch(function(error) {
-            console.error("Error removing document: ", error);
-        });
-
-        // TODO: Разобраться как работает this.database.child(cupId).remove();
-        // https://github.com/wesdoyle/react-firebase-notes-app/blob/master/src/App.js
+        /**
+         * Удаляем чашку по docId.
+         */ 
+        deleteCupById(docId)
+            .then(
+                (result) => {
+                    console.log("Document successfully deleted!");
+                }
+            )
+            .catch(
+                (error) => {
+                    console.error("Error removing document: ", error);
+                }
+            );
     }
 
+    /**
+     * Обработчик нажатия на кнопку "Добавить".
+     */
     handleAddButtonClick = (event) => {
-        // Добавление записи https://firebase.google.com/docs/firestore/manage-data/add-data (with a generated id)
-
-        database.collection("cups").add({
+        /**
+         * Создаём новую чашку.
+         */
+        const newCup = {
             user: "Volkov",
             datetime: new Date()
-        })
-        .then(function(docRef) {
-            console.log("Document written with ID: ", docRef.id);
-        })
-        .catch(function(error) {
-            console.error("Error adding document: ", error);
-        });
+        }
+        /**
+         * Добавляем новый документ в коллекцию cups/
+         */
+        addCup(newCup)
+            .then(
+                (docRef) => {
+                    console.log("Document written with ID: ", docRef.id);
+                }
+            )
+            .catch(
+                (error) => {
+                    console.error("Error adding document: ", error);
+                }
+            );
     }   
 
     render () {
