@@ -1,0 +1,35 @@
+.coffeeIconWrapper {
+    position: relative;
+    display: inline-block;
+    height: 30px;
+
+    .cross-icon {
+        position: absolute;
+        left: 0;
+        width: 30px;
+        height: 30px;
+        opacity: 0;
+    }
+    
+    .cross-icon:hover {
+        opacity: 1;
+    }
+
+    .cross-icon:before, .cross-icon:after {
+        position: absolute;
+        left: 15px;
+        content: ' ';
+        height: 33px;
+        width: 2px;
+        background-color: #f00;
+    }
+
+    .cross-icon:before {
+        transform: rotate(45deg);
+    }
+    
+    .cross-icon:after {
+        transform: rotate(-45deg);
+    }
+}
+  

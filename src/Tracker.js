@@ -1,13 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {Grid, Row, Col, Button} from 'react-bootstrap';
-import { database } from './Config/config.js';
-import { deleteCupById, addCup, listenCupsByUser, getAllCupsForUser } from './Servcies/CupsServices.js';
+import {deleteCupById, addCup, listenCupsByUser, getAllCupsForUser } from './Servcies/CupsServices.js';
 import DayPicker from 'react-day-picker';
+import { CoffeeIcon } from './SVGIcons/CoffeeIcon.js';
 
 import 'react-day-picker/lib/style.css';
-import { CoffeeIcon } from './Components/CoffeeIcon.js';
 
+/**
+ * Компонент-страница "Мой трекер".
+ */
 export class Tracker extends React.Component {
     state = {
         isLoading: true,
@@ -28,7 +30,7 @@ export class Tracker extends React.Component {
                      * И кладём их в стейт.
                      */
                     querySnapshot.forEach((doc) => {
-                        cups.push(Object.assign({}, doc.data(), {id: doc.id})); // TODO: Убрать костыль. 
+                        cups.push(doc);
                     });
                     this.setState({
                         isLoading: false,
@@ -53,7 +55,7 @@ export class Tracker extends React.Component {
              */
             querySnapshot.forEach(
                 (doc) => {
-                    cups.push(Object.assign({}, doc.data(), {id: doc.id}));
+                    cups.push(doc);
                 }
             );
             this.setState({cups})
@@ -64,7 +66,7 @@ export class Tracker extends React.Component {
      * Обработчик нажатия на кнопку "Удалить".
      */
     handleRemoveButtonClick = (event) => {
-        const docId = event.target.id;
+        const docId = event.target.parentNode.id;
         /**
          * Удаляем чашку по docId.
          */
@@ -119,41 +121,6 @@ export class Tracker extends React.Component {
         });
     }
 
-    // render () {
-    //     const {isLoading, cups} = this.state;        
-
-    //     return (
-    //         isLoading ? <span>Идёт загрузка ...</span> : 
-    //         <div>
-    //             <ul>
-    //                 {    
-    //                     cups.map((doc) => {
-    //                         const data = doc.data();
-
-    //                         return (
-    //                             <li key={doc.id}>
-    //                                 {`Запись с id ${doc.id} была создана ${data.datetime} пользователем ${data.user}`} 
-    //                                 <Button
-    //                                     data-id={doc.id}
-    //                                     onClick={this.handleRemoveButtonClick}
-    //                                 >
-    //                                     Удалить
-    //                                 </Button>
-    //                             </li>
-    //                         );
-    //                     })
-    //                 }
-    //             </ul>
-
-    //             <Button
-    //                 onClick={this.handleAddButtonClick}
-    //             >
-    //                 Добавить
-    //             </Button>
-    //         </div>
-    //     )
-    // }
-
     render () {
         const {cups, selectedDay} = this.state;
         const today = new Date();
@@ -161,12 +128,12 @@ export class Tracker extends React.Component {
        
         cups.forEach(
             (cup) => {
-                if (cup.datetime.setHours(0, 0, 0, 0) === selectedDay.setHours(0, 0, 0, 0)) {
+                const cupData = cup.data();
+
+                if (cupData.datetime.setHours(0, 0, 0, 0) === selectedDay.setHours(0, 0, 0, 0)) {
                     coffeeItems.push(
-                        <CoffeeIcon 
-                            height="30"
-                            width="30"
-                            id={cup.id} // TODO: Вот тут надо переделать, это не работает.
+                        <CoffeeIcon
+                            id={cup.id}
                             onClick={this.handleRemoveButtonClick}
                         />
                     );
